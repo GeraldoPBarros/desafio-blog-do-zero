@@ -1,4 +1,7 @@
 import { GetStaticProps } from 'next';
+import Head from 'next/head';
+import Prismic from '@prismicio/client';
+import { RichText } from 'prismic-dom';
 
 import { getPrismicClient } from '../services/prismic';
 
@@ -24,13 +27,15 @@ interface HomeProps {
   postsPagination: PostPagination;
 }
 
-// export default function Home() {
-//   // TODO
-// }
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+export default function Home() {
+  return (
+    <>
+      <Head>
+        <title>Posts | Blog do Zero</title>
+      </Head>
 
-// export const getStaticProps = async () => {
-//   // const prismic = getPrismicClient();
-//   // const postsResponse = await prismic.query(TODO);
-
-//   // TODO
-// };
+      <main>Teste</main>
+    </>
+  );
+}
