@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { GetStaticPaths, GetStaticProps } from 'next';
 
 import { getPrismicClient } from '../../services/prismic';
@@ -26,20 +27,32 @@ interface PostProps {
   post: Post;
 }
 
-// export default function Post() {
-//   // TODO
-// }
+export default function Post({ post }: PostProps) {
+  return <>{post}</>;
+}
 
-// export const getStaticPaths = async () => {
-//   const prismic = getPrismicClient();
-//   const posts = await prismic.query(TODO);
+export const getStaticPaths = async () => {
+  const prismic = getPrismicClient();
+  // const posts = await prismic.query(TODO);
+  return {
+    paths: [],
+    fallback: true,
+  };
 
-//   // TODO
-// };
+  // TODO
+};
 
-// export const getStaticProps = async context => {
-//   const prismic = getPrismicClient();
-//   const response = await prismic.getByUID(TODO);
+export const getStaticProps: GetStaticProps = async ({ params }) => {
+  const prismic = getPrismicClient();
+  console.log('context: ', params);
+  // const response = await prismic.getByUID(TODO);
 
-//   // TODO
-// };
+  // TODO
+  return {
+    props: {
+      post: [],
+    },
+  };
+};
+
+// REVISAR GET STATIC PATHS
