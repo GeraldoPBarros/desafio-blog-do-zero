@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { GetStaticPaths, GetStaticProps } from 'next';
 
+import { RichText } from 'prismic-dom';
+
 import { getPrismicClient } from '../../services/prismic';
 
 import commonStyles from '../../styles/common.module.scss';
@@ -28,7 +30,7 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps) {
-  return <>{post}</>;
+  return <>{post.data.author}</>;
 }
 
 export const getStaticPaths = async () => {
@@ -44,13 +46,29 @@ export const getStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const prismic = getPrismicClient();
-  console.log('context: ', params);
-  // const response = await prismic.getByUID(TODO);
 
-  // TODO
+  const response = await prismic.getByUID('post', params.slug.toString(), {});
+
+  const post = {
+    first_publication_date: response.first_publication_date,
+    data: {
+      title: RichText.asText(response.data.title),
+      banner: {
+        url: response.data.banner.url,
+      },
+      author: response.data.author,
+      content: {
+        heading: 'RichText.asText(response.data.subtitle)',
+        body: {
+          text: 'RichText.asText(response.data.content.heading)',
+        },
+      },
+    },
+  };
+
   return {
     props: {
-      post: [],
+      post,
     },
   };
 };
