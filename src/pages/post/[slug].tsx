@@ -1,13 +1,22 @@
+/* eslint-disable react/no-array-index-key */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { useState, useEffect } from 'react';
+
 import { GetStaticPaths, GetStaticProps } from 'next';
+import { useRouter } from 'next/router';
+
+import Prismic from '@prismicio/client';
 
 import { RichText } from 'prismic-dom';
-import Head from 'next/head';
+
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+
+import Header from '../../components/Header';
 
 import { getPrismicClient } from '../../services/prismic';
 
-import commonStyles from '../../styles/common.module.scss';
+// import commonStyles from '../../styles/common.module.scss';
 import styles from './post.module.scss';
 
 interface Post {
@@ -32,84 +41,143 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps) {
+  const router = useRouter();
   const [readingMin, setReadingMin] = useState('');
+  const [contentPost, setContentPost] = useState(null);
 
   useEffect(() => {
-    let strCount = '';
+    /* let strCount = '';
     let arrCount = [];
 
-    for (let x = 0; x < post.data.content.length; x += 1) {
-      for (let y = 0; y < post.data.content[x].body.length; y += 1) {
-        strCount += post.data.content[x].body[y].text;
-      }
+    console.log('CONTENT: ', post.data.content);
 
-      if (x === post.data.content.length - 1) {
-        arrCount = strCount.split(' ');
-        setReadingMin(Math.round(arrCount.length / 200).toString());
+     if (post !== undefined) {
+      for (let x = 0; x < post.data?.content.length; x += 1) {
+        if (x === 0) strCount += `${post.data?.content[x].heading} `;
+        else strCount += ` ${post.data?.content[x].heading} `;
+        for (let y = 0; y < post.data?.content[x].body.length; y += 1) {
+          if (y === 0) strCount += `${post.data?.content[x].body[y].text}`;
+          else strCount += ` ${post.data?.content[x].body[y].text}`;
+        }
+
+        if (x === post.data?.content.length - 1) {
+          console.log('STRING: ', strCount);
+          arrCount = strCount.split(' ');
+          console.log('ARRAY FINAL: ', arrCount);
+          console.log('LENGTH: ', arrCount.length);
+          console.log('DIVISÃO: ', arrCount.length / 200);
+          console.log(
+            'VALOR FINAL: ',
+            Math.round(arrCount.length / 200).toString()
+          );
+          setReadingMin(Math.round(arrCount.length / 200).toString());
+        }
       }
+    } */
+    const amountWordsOfBody = RichText.asText(
+      post.data.content.reduce((acc, data) => [...acc, ...data.body], [])
+    ).split(' ').length;
+
+    const amountWordsOfHeading = post.data.content.reduce((acc, data) => {
+      if (data.heading) {
+        return [...acc, ...data.heading.split(' ')];
+      }
+      return [...acc];
+    }, []).length;
+
+    const finalAmount = Math.ceil(
+      (amountWordsOfBody + amountWordsOfHeading) / 200
+    ).toString();
+
+    if (router.isFallback) {
+      setContentPost(<div>Carregando...</div>);
+    } else {
+      setContentPost(
+        <>
+          <Header />
+          <main className={styles.container}>
+            <img src={`${post.data?.banner.url}`} alt="banner" />
+            <div className={styles.container_info}>
+              <h1>{post.data?.title}</h1>
+              <div className={styles.container_small_desc}>
+                <div>
+                  {format(
+                    new Date(post?.first_publication_date),
+                    'dd MMM yyyy',
+                    {
+                      locale: ptBR,
+                    }
+                  )}
+                </div>
+                <div>{post.data?.author}</div>
+                <div>{finalAmount} min</div>
+              </div>
+              {post.data?.content.map(content => (
+                <>
+                  <h3 key={content.heading}>{content.heading}</h3>
+                  {content.body.map((element, index) => (
+                    <p key={index}>{element.text}</p>
+                  ))}
+                </>
+              ))}
+            </div>
+          </main>
+        </>
+      );
     }
   }, [post]);
 
-  return (
-    <>
-      <Head>
-        <title>Posts | Blog do Zero</title>
-      </Head>
-      <img src="/images/Logo.png" alt="logo" />
-      <main className={styles.container}>
-        <img src={`${post.data.banner.url}`} alt="banner" />
-        <div className={styles.container_info}>
-          <h1>{post.data.title}</h1>
-          <div className={styles.container_small_desc}>
-            <div>{post.first_publication_date}</div>
-            <div>{post.data.author}</div>
-            <div>{readingMin} min</div>
-          </div>
-          {post.data.content.map(content => (
-            <>
-              <h3>{content.heading}</h3>
-              {content.body.map(paragraph => (
-                <p>{paragraph.text}</p>
-              ))}
-            </>
-          ))}
-        </div>
-      </main>
-    </>
-  );
+  return contentPost;
 }
 
 export const getStaticPaths = async () => {
   const prismic = getPrismicClient();
-  // const posts = await prismic.query(TODO);
+
+  const posts = await prismic.query(
+    [Prismic.predicates.at('document.type', 'post')],
+    {
+      fetch: ['publication.title'],
+      pageSize: 2,
+    }
+  );
+
+  /* function findPaths(paths: any) {
+    return paths.find(p => p.params.slug !== undefined);
+  } */
+
+  const paths = posts.results.map(post => ({
+    params: {
+      slug: `${post?.uid}`,
+    },
+  }));
+
+  // const paths = [findPaths(iniPaths)];
+
   return {
-    paths: [],
+    paths,
     fallback: true,
   };
-
-  // TODO
 };
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const prismic = getPrismicClient();
 
-  const response = await prismic.getByUID('post', params.slug.toString(), {});
+  const response = await prismic.getByUID('post', `${params.slug}`, {});
+
+  // const title = JSON.stringify(response.data?.title, null, 2);
+  // const subtitle = JSON.stringify(response.data?.subtitle, null, 2);
 
   const post = {
-    first_publication_date: new Date(
-      response.first_publication_date
-    ).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-    }),
+    uid: response.uid,
+    first_publication_date: response.first_publication_date,
     data: {
-      title: RichText.asText(response.data.title),
+      title: response.data?.title,
+      subtitle: response.data?.subtitle,
+      author: response.data?.author,
       banner: {
-        url: response.data.banner.url,
+        url: response.data?.banner.url,
       },
-      author: response.data.author,
-      content: response.data.content,
+      content: response.data?.content,
     },
   };
 
@@ -117,7 +185,6 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     props: {
       post,
     },
+    revalidate: 1,
   };
 };
-
-// REVISAR GET STATIC PATHS

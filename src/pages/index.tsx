@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { useState } from 'react';
 import { GetStaticProps } from 'next';
-import Head from 'next/head';
+
 import Prismic from '@prismicio/client';
 import Link from 'next/link';
-
 import { RichText } from 'prismic-dom';
+
+import Header from '../components/Header';
 
 import { getPrismicClient } from '../services/prismic';
 
@@ -57,12 +58,9 @@ export default function Home({ postsPagination }: HomeProps) {
 
   return (
     <>
-      <Head>
-        <title>Posts | Blog do Zero</title>
-      </Head>
+      <Header />
       <main>
         <div>
-          <img src="/images/Logo.png" alt="logo" />
           {postsPagination.results.map(post => (
             <Link key={post.uid} href={`/post/${post.uid}`}>
               <a>
@@ -123,9 +121,11 @@ export const getStaticProps: GetStaticProps = async () => {
     [Prismic.predicates.at('document.type', 'post')],
     {
       fetch: ['publication.title'],
-      pageSize: 1,
+      pageSize: 2,
     }
   );
+
+  // console.log('Response: ', `${postsResponse.results[0].slugs}`);
 
   const posts = postsResponse.results.map(post => {
     return {
