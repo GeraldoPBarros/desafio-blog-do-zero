@@ -6,12 +6,15 @@ import Prismic from '@prismicio/client';
 import Link from 'next/link';
 import { RichText } from 'prismic-dom';
 
+import { format } from 'date-fns';
+import ptBR from 'date-fns/locale/pt-BR';
+
 import Header from '../components/Header';
 
 import { getPrismicClient } from '../services/prismic';
 
-import commonStyles from '../styles/common.module.scss';
-// import styles from './home.module.scss';
+// import commonStyles from '../styles/common.module.scss';
+import styles from './home.module.scss';
 
 interface Post {
   uid?: string;
@@ -38,7 +41,6 @@ export default function Home({ postsPagination }: HomeProps) {
   const [nextPageValues, setNextPageValues] = useState([]);
 
   async function updateNextPage(url) {
-    // FETCHING NEXT PAGE DATA
     const res = await fetch(url);
     const tempData = await res.json();
     const next_page_posts = tempData.results.map(np_post => {
@@ -59,21 +61,33 @@ export default function Home({ postsPagination }: HomeProps) {
   return (
     <>
       <Header />
-      <main>
-        <div>
+      <main className={styles.container}>
+        <>
           {postsPagination.results.map(post => (
             <Link key={post.uid} href={`/post/${post.uid}`}>
               <a>
                 <h2>{post.data.title}</h2>
-                <h4>{post.data.subtitle}</h4>
-                <div>
-                  <div>
-                    <p>{post.first_publication_date}</p>
+                <p className={styles.subtitle}>{post.data.subtitle}</p>
+                <div className={styles.containerDateAndAuthor}>
+                  <div className={styles.subContainerDateAndAuthor}>
+                    <img src="/images/calendar.png" alt="calendar" />
+                    <p>
+                      {format(
+                        new Date(post?.first_publication_date),
+                        'dd MMM yyyy',
+                        {
+                          locale: ptBR,
+                        }
+                      )}
+                    </p>
                   </div>
-                  <div>
+                  <div className={styles.subContainerDateAndAuthor}>
+                    <img src="/images/user.png" alt="calendar" />
                     <p>{post.data.author}</p>
                   </div>
                 </div>
+                <br />
+                <br />
               </a>
             </Link>
           ))}
@@ -81,6 +95,7 @@ export default function Home({ postsPagination }: HomeProps) {
           {postsPagination.next_page !== null && !isNextPage && (
             <button
               type="button"
+              className={styles.carregarMais}
               onClick={() => updateNextPage(postsPagination.next_page)}
             >
               <h4>Carregar mais posts</h4>
@@ -92,21 +107,33 @@ export default function Home({ postsPagination }: HomeProps) {
                 <Link key={post.uid} href={`/post/${post.uid}`}>
                   <a>
                     <h2>{post.data.title}</h2>
-                    <h4>{post.data.subtitle}</h4>
-                    <div>
-                      <div>
-                        <p>{post.first_publication_date}</p>
+                    <p className={styles.subtitle}>{post.data.subtitle}</p>
+                    <div className={styles.containerDateAndAuthor}>
+                      <div className={styles.subContainerDateAndAuthor}>
+                        <img src="/images/calendar.png" alt="calendar" />
+                        <p>
+                          {format(
+                            new Date(post?.first_publication_date),
+                            'dd MMM yyyy',
+                            {
+                              locale: ptBR,
+                            }
+                          )}
+                        </p>
                       </div>
-                      <div>
+                      <div className={styles.subContainerDateAndAuthor}>
+                        <img src="/images/user.png" alt="calendar" />
                         <p>{post.data.author}</p>
                       </div>
                     </div>
+                    <br />
+                    <br />
                   </a>
                 </Link>
               ))}
             </>
           )}
-        </div>
+        </>
       </main>
     </>
   );
@@ -121,11 +148,9 @@ export const getStaticProps: GetStaticProps = async () => {
     [Prismic.predicates.at('document.type', 'post')],
     {
       fetch: ['publication.title'],
-      pageSize: 2,
+      pageSize: 1,
     }
   );
-
-  // console.log('Response: ', `${postsResponse.results[0].slugs}`);
 
   const posts = postsResponse.results.map(post => {
     return {

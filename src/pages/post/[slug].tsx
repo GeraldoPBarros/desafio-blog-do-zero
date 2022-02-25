@@ -42,38 +42,9 @@ interface PostProps {
 
 export default function Post({ post }: PostProps) {
   const router = useRouter();
-  const [readingMin, setReadingMin] = useState('');
   const [contentPost, setContentPost] = useState(null);
 
   useEffect(() => {
-    /* let strCount = '';
-    let arrCount = [];
-
-    console.log('CONTENT: ', post.data.content);
-
-     if (post !== undefined) {
-      for (let x = 0; x < post.data?.content.length; x += 1) {
-        if (x === 0) strCount += `${post.data?.content[x].heading} `;
-        else strCount += ` ${post.data?.content[x].heading} `;
-        for (let y = 0; y < post.data?.content[x].body.length; y += 1) {
-          if (y === 0) strCount += `${post.data?.content[x].body[y].text}`;
-          else strCount += ` ${post.data?.content[x].body[y].text}`;
-        }
-
-        if (x === post.data?.content.length - 1) {
-          console.log('STRING: ', strCount);
-          arrCount = strCount.split(' ');
-          console.log('ARRAY FINAL: ', arrCount);
-          console.log('LENGTH: ', arrCount.length);
-          console.log('DIVISÃO: ', arrCount.length / 200);
-          console.log(
-            'VALOR FINAL: ',
-            Math.round(arrCount.length / 200).toString()
-          );
-          setReadingMin(Math.round(arrCount.length / 200).toString());
-        }
-      }
-    } */
     const amountWordsOfBody = RichText.asText(
       post.data.content.reduce((acc, data) => [...acc, ...data.body], [])
     ).split(' ').length;
@@ -130,7 +101,7 @@ export default function Post({ post }: PostProps) {
   return contentPost;
 }
 
-export const getStaticPaths = async () => {
+export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient();
 
   const posts = await prismic.query(
@@ -141,17 +112,11 @@ export const getStaticPaths = async () => {
     }
   );
 
-  /* function findPaths(paths: any) {
-    return paths.find(p => p.params.slug !== undefined);
-  } */
-
   const paths = posts.results.map(post => ({
     params: {
       slug: `${post?.uid}`,
     },
   }));
-
-  // const paths = [findPaths(iniPaths)];
 
   return {
     paths,
@@ -164,14 +129,19 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
   const response = await prismic.getByUID('post', `${params.slug}`, {});
 
-  // const title = JSON.stringify(response.data?.title, null, 2);
-  // const subtitle = JSON.stringify(response.data?.subtitle, null, 2);
+  let title;
+
+  if (typeof response.data.title === 'string') {
+    title = response.data.title;
+  } else {
+    title = response.data.title[0].text;
+  }
 
   const post = {
     uid: response.uid,
     first_publication_date: response.first_publication_date,
     data: {
-      title: response.data?.title,
+      title,
       subtitle: response.data?.subtitle,
       author: response.data?.author,
       banner: {

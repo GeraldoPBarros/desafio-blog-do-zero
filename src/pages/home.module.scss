@@ -1,1 +1,42 @@
-// TODO
+.container {
+  max-width: 700px;
+  min-height: 100%;
+
+  .subtitle {
+    margin-bottom: 10px;
+  }
+
+  a {
+    min-height: 108px;
+    margin-bottom: 50px;
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    .containerDateAndAuthor {
+      display: flex;
+      width: 300px;
+      justify-content: space-between;
+
+      .subContainerDateAndAuthor {
+        display: flex;
+        align-items: center;
+        width: 50%;
+        height: 25px;
+
+        img {
+          margin-right: 10px;
+        }
+      }
+    }
+  }
+
+  .carregarMais {
+    background: none;
+    border: none;
+    h4 {
+      color: #ff57b2;
+    }
+  }
+}
