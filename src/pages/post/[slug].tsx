@@ -65,27 +65,43 @@ export default function Post({ post }: PostProps) {
     } else {
       setContentPost(
         <>
-          <Header />
+          <div className={styles.header}>
+            <Header />
+          </div>
+
           <main className={styles.container}>
-            <img src={`${post.data?.banner.url}`} alt="banner" />
+            <img
+              className={styles.banner}
+              src={`${post.data?.banner.url}`}
+              alt="banner"
+            />
             <div className={styles.container_info}>
               <h1>{post.data?.title}</h1>
               <div className={styles.container_small_desc}>
-                <div>
-                  {format(
-                    new Date(post?.first_publication_date),
-                    'dd MMM yyyy',
-                    {
-                      locale: ptBR,
-                    }
-                  )}
+                <div className={styles.subContainerDateAndAuthor}>
+                  <img src="/images/calendar.png" alt="calendar" />
+                  <div>
+                    {format(
+                      new Date(post?.first_publication_date),
+                      'dd MMM yyyy',
+                      {
+                        locale: ptBR,
+                      }
+                    )}
+                  </div>
                 </div>
-                <div>{post.data?.author}</div>
-                <div>{finalAmount} min</div>
+                <div className={styles.subContainerDateAndAuthor}>
+                  <img src="/images/user.png" alt="calendar" />
+                  <div>{post.data?.author}</div>
+                </div>
+                <div className={styles.subContainerDateAndAuthor}>
+                  <img src="/images/clock.png" alt="calendar" />
+                  <div>{finalAmount} min</div>
+                </div>
               </div>
               {post.data?.content.map(content => (
                 <>
-                  <h3 key={content.heading}>{content.heading}</h3>
+                  <h2 key={content.heading}>{content.heading}</h2>
                   {content.body.map((element, index) => (
                     <p key={index}>{element.text}</p>
                   ))}
